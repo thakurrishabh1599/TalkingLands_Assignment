@@ -1,0 +1,58 @@
+version: 0.2
+
+env:
+  variables:
+    DOCKER_IMAGE: "1234567rishabh/node-app"
+    IMAGE_TAG: "v1"
+    K8S_DEPLOYMENT: "node-app"
+    K8S_CONTAINER: "node-app"
+  secrets-manager:
+    GITHUB_TOKEN: "your-github-secret-key"
+    DOCKER_USERNAME: "your-dockerhub-secret-key"
+    DOCKER_PASSWORD: "your-dockerhub-secret-key"
+
+phases:
+  install:
+    runtime-versions:
+      docker: latest
+      kubectl: latest
+    commands:
+      - echo "Installing dependencies..."
+      - apt-get update && apt-get install -y awscli jq
+
+  pre_build:
+    commands:
+      - echo "Logging in to DockerHub..."
+      - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+      - echo "Cloning GitHub repository..."
+      - git clone https://github.com/thakurrishabh1599/TalkingLands_Assignment.git
+      - cd TalkingLands_Assignment/Task2
+  build:
+    commands:
+      - echo "Building Docker image..."
+      - docker build -t $DOCKER_IMAGE:$IMAGE_TAG .
+      - docker tag $DOCKER_IMAGE:$IMAGE_TAG $DOCKER_IMAGE:$IMAGE_TAG
+
+  post_build:
+    commands:
+      - echo "Pushing Docker image to DockerHub..."
+      - docker push $DOCKER_IMAGE:$IMAGE_TAG
+      - echo "Updating Kubernetes deployment..."
+      - aws eks update-kubeconfig --name eks_master --region us-east-1
+      
+      - kubectl get deployment $K8S_DEPLOYMENT -o yaml > previous-deployment.yaml
+      - kubectl apply -f deployment.yaml
+      
+      
+      - kubectl set image deployment/$K8S_DEPLOYMENT $K8S_CONTAINER=$DOCKER_IMAGE:$IMAGE_TAG
+      
+      - |
+        if ! kubectl rollout status deployment/$K8S_DEPLOYMENT; then
+          echo "Deployment failed! Rolling back..."
+          kubectl rollout undo deployment/$K8S_DEPLOYMENT
+          exit 1
+        fi
+
+artifacts:
+  files:
+    - "**/*"
