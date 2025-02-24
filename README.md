@@ -8,7 +8,7 @@ Requirements:
 2. Use a security group to allow HTTP (port 80) and SSH (port 22) access.
 3. The Nginx server should display a custom webpage with the text: "Deployed via Terraform."
 4. Use variables to make the configuration reusable for different environments (e.g., dev, prod).
-Task 2: CI/CD Pipeline
+# Task 2: CI/CD Pipeline
 Scenario:
 Set up a CI/CD pipeline to build, test, and deploy a simple Node.js application.
 Requirements:
@@ -18,7 +18,7 @@ Requirements:
 * Package the application as a Docker container.
 * Deploy the container to a Kubernetes cluster (use Minikube, kind, or a cloud provider).
 2. Rollback deployment if any step fails.
-Task 3: Kubernetes Deployment
+# Task 3: Kubernetes Deployment
 Scenario:
 Deploy a sample Python application on a Kubernetes cluster with monitoring and auto-scaling
 enabled.
